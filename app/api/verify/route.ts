@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { scrapeOfficialContext } from '@/lib/scraper';
-import { verifyWithGemini } from '@/lib/gemini';
+import { scrapeOfficialContext } from '../../../lib/scraper';
+import { verifyWithGemini } from '../../../lib/gemini';
 
 // Simple In-Memory Rate Limiter
 const rateLimitMap = new Map<string, { count: number, resetTime: number }>();

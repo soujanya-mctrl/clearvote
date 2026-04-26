@@ -1,91 +1,98 @@
 import puppeteer from 'puppeteer';
 import { Source } from './types';
 
-const OFFICIAL_SOURCES = [
-  'https://www.eci.gov.in/faqs/evm/evm-faqs-r11/',
-  'https://www.eci.gov.in/faqs/voter-id-card/voter-id-card-faqs-r12/',
+// Expanded source list to include reputable news and official portals
+const SOURCE_MAP = [
+  { name: "ECI FAQs", url: "https://eci.gov.in/faqs/evm-vvpat/" },
+  { name: "ECI Voter ID", url: "https://eci.gov.in/faqs/voter-id/" },
+  { name: "The Hindu Elections", url: "https://www.thehindu.com/topic/elections/" },
+  { name: "NDTV India Elections", url: "https://www.ndtv.com/india-news/topic/elections" }
 ];
 
-// Fallback data in case of complete scraper failure
-const FALLBACK_CONTEXT: Source[] = [
-  {
-    title: "ECI - EVM & VVPAT Protocol",
-    url: "https://www.eci.gov.in/faqs/evm/evm-faqs-r11/",
-    content: "EVMs are standalone machines not connected to any network (Internet, Bluetooth, or WiFi). They are tamper-proof and have multiple security layers including administrative and technical safeguards. VVPAT allows voters to verify their vote."
-  },
-  {
-    title: "ECI - Voter Identification",
-    url: "https://www.eci.gov.in/faqs/voter-id-card/voter-id-card-faqs-r12/",
-    content: "Voters can cast their vote even if they do not have an EPIC card, provided their name is in the electoral roll and they carry one of the 12 alternative photo ID documents approved by the Commission."
-  },
-  {
-    title: "ECI - Conduct & Attire",
-    url: "https://www.eci.gov.in/mcc/",
-    content: "Display of any election-related symbols or campaigning (including t-shirts, caps, or stickers of a political party) is strictly prohibited within 100 meters of the polling station. This is to ensure a neutral and non-intimidating environment for all voters."
-  }
-];
+const FALLBACK_CONTEXT: Record<string, string> = {
+  "voter list": "If your name is not on the electoral roll, you cannot vote. You must apply for registration using Form 6 well in advance of the election. Your voter ID card alone does not guarantee a vote; the name must be in the current electoral roll. Source: ECI FAQ Section 1.",
+  "evm": "EVMs are stand-alone machines, not connected to any network. They use M3 technology with dynamic coding. VVPAT allows voters to verify their vote for 7 seconds. Sources: ECI FAQ Section 1-4.",
+  "registration": "Registration requires Form 6. Citizens aged 18+ can apply online via NVSP or offline via ERO. BLO conducts field verification. Sources: ECI Registration Handbook.",
+  "t-shirt": "The Model Code of Conduct (MCC) prohibits campaigning within 100 meters of a polling station. Wearing party-specific apparel (t-shirts, caps) inside the booth is considered campaigning and is strictly prohibited. Sources: ECI MCC Guidelines.",
+  "online": "India does not currently support online voting for general citizens. All votes must be cast in person at assigned polling booths using EVMs. NRI voters can use ETPBS in specific categories. Sources: ECI Digital Initiatives Report."
+};
 
-const cache: Map<string, string> = new Map();
-
-export async function scrapeOfficialContext(query: string): Promise<Source[]> {
-  const sources: Source[] = [];
-  const queryLower = query.toLowerCase();
-
+/**
+ * High-fidelity scraper using Puppeteer to handle SPAs and bypass simple bot detection.
+ */
+async function scrapeWithPuppeteer(url: string): Promise<string | null> {
   let browser;
   try {
-    console.log("[Scraper] Launching Puppeteer...");
-    browser = await puppeteer.launch({
+    console.log(`[Puppeteer] Scraping: ${url}`);
+    browser = await puppeteer.launch({ 
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-
     const page = await browser.newPage();
+    
     // Set a realistic user agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    // Set timeout to 10s for hackathon speed
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
-    for (const url of OFFICIAL_SOURCES) {
-      try {
-        if (cache.has(url)) {
-          sources.push({ title: "Official FAQ", url, content: cache.get(url) });
-          continue;
-        }
+    // Wait a bit for JS to execute
+    await new Promise(r => setTimeout(r, 1000));
 
-        console.log(`[Scraper] Navigating to ${url}...`);
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 15000 });
-        
-        // Wait for main content to load
-        const content = await page.evaluate(() => {
-          const main = document.querySelector('main') || document.querySelector('article') || document.body;
-          return main ? main.innerText : '';
-        });
+    // Extract text content while removing junk tags
+    const text = await page.evaluate(() => {
+      const scripts = document.querySelectorAll('script, style, noscript, iframe, header, footer, nav');
+      scripts.forEach(s => s.remove());
+      return document.body.innerText.replace(/\s+/g, ' ').trim();
+    });
 
-        const cleaned = content.replace(/\s+/g, ' ').trim().slice(0, 5000);
-        if (cleaned.length > 100) {
-          cache.set(url, cleaned);
-          const title = await page.title();
-          sources.push({ title: title || "Official FAQ", url, content: cleaned });
-        }
-      } catch (err: any) {
-        console.warn(`[Scraper] Failed to scrape ${url}: ${err.message}`);
-      }
-    }
+    return text;
   } catch (error: any) {
-    console.error("[Scraper] Puppeteer Launch Error:", error.message);
+    console.warn(`[Puppeteer] Failed to scrape ${url}:`, error.message);
+    return null;
   } finally {
     if (browser) await browser.close();
   }
+}
 
-  // Fallback logic
-  if (sources.length === 0) {
-    console.log("[Scraper] Using internal knowledge base fallback.");
-    if (queryLower.includes('evm') || queryLower.includes('hack') || queryLower.includes('machine')) {
-      sources.push(FALLBACK_CONTEXT[0]);
-    } else if (queryLower.includes('id') || queryLower.includes('card') || queryLower.includes('document')) {
-      sources.push(FALLBACK_CONTEXT[1]);
-    } else {
-      sources.push(...FALLBACK_CONTEXT);
+export async function scrapeOfficialContext(query: string): Promise<Source[]> {
+  const sources: Source[] = [];
+  const searchKeywords = query.toLowerCase();
+
+  // 1. Initial grounding with Fallback Context
+  for (const [key, content] of Object.entries(FALLBACK_CONTEXT)) {
+    if (searchKeywords.includes(key)) {
+      sources.push({
+        title: `Official Protocol: ${key.toUpperCase()}`,
+        url: "https://eci.gov.in/faqs/",
+        content: content
+      });
     }
   }
+
+  // 2. Dynamic Scraping across multiple domains
+  // We'll scrape the top 2 relevant sources based on the query to save time
+  const relevantTargets = SOURCE_MAP.filter(s => 
+    searchKeywords.includes(s.name.toLowerCase().split(' ')[0]) || 
+    sources.length < 2 // Default to first few if no keyword match
+  ).slice(0, 2);
+
+  const scrapePromises = relevantTargets.map(async (target) => {
+    const content = await scrapeWithPuppeteer(target.url);
+    if (content && content.length > 300) {
+      return {
+        title: target.name,
+        url: target.url,
+        content: content.slice(0, 2500) // Limit to avoid prompt bloating
+      };
+    }
+    return null;
+  });
+
+  const scrapedResults = await Promise.all(scrapePromises);
+  scrapedResults.forEach(res => {
+    if (res) sources.push(res);
+  });
 
   return sources;
 }
