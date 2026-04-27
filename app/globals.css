@@ -2,45 +2,57 @@
 
 @theme {
   --color-background: #0d0d0d;
-  --color-secondary: #171717;
   --color-primary: #ffffff;
-  --color-border: #262626;
+  --color-secondary: #a1a1aa;
+  --color-accent: #3b82f6;
   --color-success: #10b981;
-  --color-error: #ef4444;
   --color-warning: #f59e0b;
+  --color-error: #ef4444;
 }
 
 @layer base {
   body {
-    @apply bg-background text-primary antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-background text-primary antialiased selection:bg-white/10;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
   }
 }
 
-.glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-[2rem] transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply bg-white/[0.05] border-white/10 shadow-2xl shadow-white/5;
+  }
+
+  .premium-gradient {
+    background: radial-gradient(circle at top left, rgba(255,255,255,0.05) 0%, transparent 70%);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full;
-}
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/20;
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
-/* ChatGPT-style specific utilities */
-.chat-pill {
-  @apply bg-[#171717] border border-[#262626] rounded-full px-6 py-4 transition-all;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
-
-.verdict-True { color: #10b981; }
-.verdict-False { color: #ef4444; }
-.verdict-Misleading { color: #f59e0b; }
-.verdict-Out\ of\ Scope { color: #737373; }

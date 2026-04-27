@@ -3,13 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FactCheckResponse } from '../lib/types';
 
-const SUGGESTED_QUERIES = [
-  "Can I vote if my name is not on the voter list?",
-  "Is it true that I can vote online this year?",
-  "What documents are required at the polling booth?",
-  "Can I wear a party t-shirt inside the polling station?",
-];
-
 const SOURCES_BEING_CHECKED = [
   "eci.gov.in/faqs/evm",
   "thehindu.com/elections",
@@ -54,133 +47,116 @@ export default function Verifier() {
       });
 
       const data = await response.json();
-      if (!response.ok || data.error) {
-        throw new Error(data.error || `Verification failed`);
-      }
+      if (!response.ok || data.error) throw new Error(data.error || `Verification failed`);
       setResult(data);
     } catch (err: any) {
       setError(err.message || 'An error occurred.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl flex flex-col items-center">
+    <div className="w-full max-w-2xl flex flex-col items-center pb-20">
       {!result && !loading && (
-        <div className="text-center mb-10 space-y-2 animate-in fade-in duration-500">
-          <h2 className="text-3xl font-bold tracking-tight text-white">How can I help?</h2>
-          <p className="text-zinc-500 text-xs font-medium">Verify election logistics with Gemini 2.5 Flash</p>
+        <div className="text-center mb-12 space-y-3 animate-in fade-in duration-1000">
+          <h2 className="text-4xl font-black tracking-tighter text-white text-glow">How can I help?</h2>
+          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Verify Election Integrity with AI</p>
         </div>
       )}
 
-      {/* Main Search Bar (More Compact) */}
-      <div className={`w-full transition-all duration-500 ${result || loading ? 'order-last mt-10' : ''}`}>
+      {/* Main Search Bar (Premium) */}
+      <div className={`w-full transition-all duration-700 ${result || loading ? 'order-last mt-12' : ''}`}>
         <form onSubmit={(e) => handleVerify(e)} className="relative group max-w-xl mx-auto w-full">
+          <div className="absolute inset-0 bg-white/5 blur-2xl rounded-2xl group-focus-within:bg-white/10 transition-all duration-500" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Verify an election claim..."
-            className="w-full px-6 py-3.5 bg-[#171717] border border-[#262626] rounded-xl text-sm transition-all focus:border-zinc-700 focus:ring-0 placeholder:text-zinc-600 shadow-xl relative z-10"
+            placeholder="Verify an election claim or rule..."
+            className="w-full px-8 py-5 bg-[#171717] border border-white/5 rounded-2xl text-sm transition-all focus:border-white/20 focus:ring-0 placeholder:text-zinc-600 shadow-2xl relative z-10"
           />
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-20 transition-all z-20"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-20 transition-all z-20 shadow-xl"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" />
             </svg>
           </button>
         </form>
-
-        {!result && !loading && (
-          <div className="flex flex-wrap gap-2 justify-center mt-6">
-            {SUGGESTED_QUERIES.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => { setQuery(q); handleVerify(undefined, q); }}
-                className="px-3 py-1.5 bg-[#171717] border border-[#262626] rounded-lg text-[10px] text-zinc-500 hover:border-zinc-700 hover:text-white transition-all font-medium"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Real-time Source Verification UX (Compact) */}
+      {/* Loading State (Premium) */}
       {loading && (
-        <div className="w-full mt-12 animate-in fade-in duration-500 flex flex-col items-center gap-4">
-           <div className="flex items-center gap-2">
-             <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-             <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Searching</p>
+        <div className="w-full mt-20 animate-in fade-in duration-1000 flex flex-col items-center gap-6">
+           <div className="relative">
+             <div className="w-12 h-12 border-2 border-white/5 border-t-white rounded-full animate-spin" />
+             <div className="absolute inset-0 blur-xl bg-white/20 rounded-full animate-pulse" />
            </div>
-           <div className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-mono text-zinc-400">
-             Checking: {checkingUrl}
+           <div className="text-center space-y-2">
+             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.4em]">Analyzing Ground Truth</p>
+             <div className="px-4 py-2 glass-card rounded-xl text-[10px] font-mono text-zinc-400">
+               {checkingUrl}
+             </div>
            </div>
         </div>
       )}
 
-      {/* Result Display */}
+      {/* Result Display (Premium) */}
       {result && (
-        <div className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold shrink-0 mt-1">CV</div>
-              <div className="space-y-4 flex-1">
-                <div className="space-y-2">
-                  <h2 className={`text-2xl font-black tracking-tight verdict-${result.verdict}`}>
-                    {result.verdict}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${result.confidence_score}%` }} />
-                    </div>
-                    <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{result.confidence_score}% Confidence</span>
+        <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="glass-card premium-gradient p-10 space-y-8">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className={`text-4xl font-black tracking-tighter text-glow verdict-${result.verdict}`}>
+                  {result.verdict}
+                </h2>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">{result.confidence_score}% Confidence</span>
+                  <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-white transition-all duration-1000" style={{ width: `${result.confidence_score}%` }} />
                   </div>
                 </div>
-
-                <p className="text-base leading-relaxed text-zinc-300 font-light">
-                  {result.explanation}
-                </p>
-
-                {result.sources.length > 0 && (
-                  <div className="pt-6 border-t border-white/5 space-y-4">
-                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Ground Truth Sources</p>
-                    <div className="grid gap-2">
-                      {result.sources.map((source, i) => (
-                        <div key={i} className="space-y-1">
-                          <a href={source.url} target="_blank" className="flex items-center justify-between p-3 bg-[#171717] border border-[#262626] rounded-xl hover:border-zinc-700 transition-all group">
-                            <span className="text-[11px] font-bold text-zinc-400">{source.title}</span>
-                            <svg className="w-3 h-3 text-zinc-700 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                          </a>
-                          {source.snippet && (
-                            <div className="mx-3 p-3 bg-white/5 border-l border-zinc-700 rounded-r-lg">
-                              <p className="text-[10px] text-zinc-500 italic leading-relaxed">
-                                "{source.snippet}"
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
+              <p className="text-lg leading-relaxed text-zinc-300 font-light">
+                {result.explanation}
+              </p>
             </div>
+
+            {result.sources.length > 0 && (
+              <div className="pt-8 border-t border-white/5 space-y-6">
+                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]">Verified Sources</p>
+                <div className="grid gap-4">
+                  {result.sources.map((source, i) => (
+                    <div key={i} className="space-y-3 group">
+                      <a href={source.url} target="_blank" className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.05] hover:border-white/10 transition-all">
+                        <span className="text-xs font-bold text-zinc-400 group-hover:text-white">{source.title}</span>
+                        <svg className="w-4 h-4 text-zinc-700 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                      </a>
+                      {source.snippet && (
+                        <div className="mx-4 p-5 bg-white/[0.02] border-l-2 border-white/10 rounded-r-2xl">
+                          <p className="text-xs text-zinc-500 italic leading-relaxed font-light">
+                            "{source.snippet}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Error View */}
+      {/* Error (Premium) */}
       {error && (
-        <div className="mt-10 p-4 bg-error/10 border border-error/20 rounded-xl text-center space-y-2 animate-in zoom-in duration-300">
-          <p className="text-error text-[10px] font-bold uppercase tracking-widest">Error</p>
-          <p className="text-xs text-white/40">{error}</p>
-          <button onClick={() => handleVerify()} className="text-[9px] text-white font-bold uppercase underline">Retry</button>
+        <div className="mt-12 glass-card p-6 bg-error/5 border-error/20 text-center space-y-3">
+          <p className="text-error text-[10px] font-black uppercase tracking-widest">System Alert</p>
+          <p className="text-sm text-zinc-400">{error}</p>
+          <button onClick={() => handleVerify()} className="text-[10px] text-white font-bold uppercase underline-offset-4 underline decoration-white/20">Attempt Retry</button>
         </div>
       )}
     </div>

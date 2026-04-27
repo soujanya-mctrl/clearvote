@@ -1,12 +1,11 @@
 import puppeteer from 'puppeteer';
 import { Source } from './types';
 
-// Expanded source list to include reputable news and official portals
 const SOURCE_MAP = [
   { name: "ECI FAQs", url: "https://eci.gov.in/faqs/evm-vvpat/" },
-  { name: "ECI Voter ID", url: "https://eci.gov.in/faqs/voter-id/" },
   { name: "The Hindu Elections", url: "https://www.thehindu.com/topic/elections/" },
-  { name: "NDTV India Elections", url: "https://www.ndtv.com/india-news/topic/elections" }
+  { name: "NDTV India Elections", url: "https://www.ndtv.com/india-news/topic/elections" },
+  { name: "Times of India Elections", url: "https://timesofindia.indiatimes.com/india/elections" }
 ];
 
 const FALLBACK_CONTEXT: Record<string, string> = {
@@ -18,7 +17,7 @@ const FALLBACK_CONTEXT: Record<string, string> = {
 };
 
 /**
- * High-fidelity scraper using Puppeteer to handle SPAs and bypass simple bot detection.
+ * High-fidelity scraper using Puppeteer.
  */
 async function scrapeWithPuppeteer(url: string): Promise<string | null> {
   let browser;
@@ -29,20 +28,13 @@ async function scrapeWithPuppeteer(url: string): Promise<string | null> {
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
-    
-    // Set a realistic user agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-    // Set timeout to 10s for hackathon speed
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await new Promise(r => setTimeout(r, 2000));
 
-    // Wait a bit for JS to execute
-    await new Promise(r => setTimeout(r, 1000));
-
-    // Extract text content while removing junk tags
     const text = await page.evaluate(() => {
-      const scripts = document.querySelectorAll('script, style, noscript, iframe, header, footer, nav');
-      scripts.forEach(s => s.remove());
+      const junk = document.querySelectorAll('script, style, noscript, iframe, header, footer, nav');
+      junk.forEach(s => s.remove());
       return document.body.innerText.replace(/\s+/g, ' ').trim();
     });
 
@@ -70,29 +62,28 @@ export async function scrapeOfficialContext(query: string): Promise<Source[]> {
     }
   }
 
-  // 2. Dynamic Scraping across multiple domains
-  // We'll scrape the top 2 relevant sources based on the query to save time
-  const relevantTargets = SOURCE_MAP.filter(s => 
-    searchKeywords.includes(s.name.toLowerCase().split(' ')[0]) || 
-    sources.length < 2 // Default to first few if no keyword match
-  ).slice(0, 2);
+  // 2. Dynamic Research Logic
+  // If the query looks like a candidate/party research, we target news domains more heavily
+  const targets = (searchKeywords.length > 3 && !searchKeywords.includes('how')) 
+    ? SOURCE_MAP.filter(s => s.name.includes('Hindu') || s.name.includes('NDTV') || s.name.includes('Times'))
+    : SOURCE_MAP.slice(0, 2);
 
-  const scrapePromises = relevantTargets.map(async (target) => {
+  const scrapePromises = targets.map(async (target) => {
+    // For news sites, we can append the query to their search if they support simple URL patterns
+    // For this demo, we'll scrape their main election sections which usually contain top candidate profiles
     const content = await scrapeWithPuppeteer(target.url);
-    if (content && content.length > 300) {
+    if (content && content.length > 500) {
       return {
         title: target.name,
         url: target.url,
-        content: content.slice(0, 2500) // Limit to avoid prompt bloating
+        content: content.slice(0, 3000)
       };
     }
     return null;
   });
 
   const scrapedResults = await Promise.all(scrapePromises);
-  scrapedResults.forEach(res => {
-    if (res) sources.push(res);
-  });
+  scrapedResults.forEach(res => { if (res) sources.push(res); });
 
   return sources;
 }

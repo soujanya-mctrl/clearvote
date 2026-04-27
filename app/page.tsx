@@ -4,24 +4,51 @@ import { useState, useEffect } from 'react';
 import Verifier from '../components/Verifier';
 import Dashboard from '../components/Dashboard';
 import Navigator from '../components/Navigator';
-import Onboarding from '../components/Onboarding';
+import CandidateResearch from '../components/CandidateResearch';
+import AuthOnboarding from '../components/AuthOnboarding';
+import EligibilityCheck from '../components/EligibilityCheck';
 
-type Tab = 'dashboard' | 'verifier' | 'navigator';
+type Tab = 'dashboard' | 'verifier' | 'navigator' | 'research';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('verifier');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showEligibility, setShowEligibility] = useState(false);
+  const [isEligible, setIsEligible] = useState(false);
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem('clearvote_onboarding_seen');
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
+    const eligible = localStorage.getItem('clearvote_eligible');
+    if (eligible === 'true') setIsEligible(true);
+    
+    if (!hasSeenOnboarding && activeTab === 'dashboard') {
+      setShowEligibility(true);
     }
-  }, []);
+  }, [activeTab]);
+
+  const handleEligibilityPassed = () => {
+    localStorage.setItem('clearvote_eligible', 'true');
+    setIsEligible(true);
+    setShowEligibility(false);
+    setShowOnboarding(true);
+  };
 
   const completeOnboarding = () => {
     localStorage.setItem('clearvote_onboarding_seen', 'true');
+    
+    // Initialize Demo Profile if none exists
+    if (!localStorage.getItem('clearvote_user_profile')) {
+      localStorage.setItem('clearvote_user_profile', JSON.stringify({
+        email: "demo.voter@clearvote.in",
+        phone: "+91 98765 43210",
+        aadhaar: "XXXX XXXX 1234",
+        pan: "ABCDE1234F",
+        voterId: "XYZ1234567",
+        updatedAt: new Date().toISOString()
+      }));
+    }
+    
     setShowOnboarding(false);
   };
 
@@ -32,6 +59,15 @@ export default function Home() {
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'research' as Tab, 
+      label: 'Candidate Research', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       )
     },
@@ -57,15 +93,24 @@ export default function Home() {
 
   return (
     <main className="h-screen flex bg-background text-primary selection:bg-white/10 overflow-hidden font-sans">
-      {showOnboarding && <Onboarding onComplete={completeOnboarding} />}
+      
+      {/* Overlays */}
+      {showEligibility && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-3xl">
+          <EligibilityCheck onPassed={handleEligibilityPassed} />
+        </div>
+      )}
+      {showOnboarding && <AuthOnboarding onComplete={completeOnboarding} />}
 
       {/* Minimalist Sidebar */}
       <aside 
         className={`h-screen bg-[#111] flex flex-col transition-all duration-300 ease-in-out z-50 ${
           isSidebarOpen ? 'w-64' : 'w-0'
-        } relative border-r border-white/5`}
+        } relative border-r border-white/5 overflow-hidden`}
       >
-        <div className="flex flex-col h-full p-4 gap-4 overflow-hidden whitespace-nowrap">
+        <div className={`flex flex-col h-full p-4 gap-4 transition-opacity duration-200 ${
+          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
           {/* Header */}
           <div className="flex items-center justify-between px-2 mb-4">
             <h1 className="text-sm font-bold tracking-tight">ClearVote</h1>
@@ -99,11 +144,11 @@ export default function Home() {
 
           {/* Onboarding Help Re-trigger */}
           <button 
-            onClick={() => setShowOnboarding(true)}
+            onClick={() => setShowEligibility(true)}
             className="flex items-center gap-3 px-3 py-2 text-zinc-600 hover:text-zinc-300 transition-all text-[10px] font-bold uppercase tracking-widest"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            How it works
+            Check Eligibility
           </button>
 
           {/* Bottom Profile */}
@@ -112,7 +157,7 @@ export default function Home() {
               <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">SM</div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-xs font-medium truncate text-zinc-300">Soujanya Mallick</p>
-                <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Admin</p>
+                <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Admin Account</p>
               </div>
             </div>
           </div>
@@ -133,13 +178,26 @@ export default function Home() {
 
       {/* Main Area */}
       <div className="flex-1 overflow-y-auto flex flex-col relative bg-background">
-        <header className="p-4 flex items-center justify-between z-40">
-          <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">Protocol v2.0.4</span>
-        </header>
-
         <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full pb-20">
           {activeTab === 'verifier' && <Verifier />}
-          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'research' && <CandidateResearch />}
+          {activeTab === 'dashboard' && (
+            !isEligible ? (
+              <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-white/5 border border-white/10 flex items-center justify-center text-4xl shadow-2xl animate-float">🛡️</div>
+                <div className="text-center space-y-2">
+                   <h2 className="text-3xl font-black tracking-tighter text-glow">Identity Locked</h2>
+                   <p className="text-zinc-500 text-sm font-light max-w-xs mx-auto">Verify your legal voting eligibility to unlock your personal Readiness Vault.</p>
+                </div>
+                <button 
+                  onClick={() => setShowEligibility(true)}
+                  className="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:scale-110 active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                >
+                  Check Eligibility
+                </button>
+              </div>
+            ) : <Dashboard />
+          )}
           {activeTab === 'navigator' && <Navigator />}
         </div>
       </div>
