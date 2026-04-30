@@ -39,8 +39,8 @@ async function scrapeWithPuppeteer(url: string): Promise<string | null> {
     });
 
     return text;
-  } catch (error: any) {
-    console.warn(`[Puppeteer] Failed to scrape ${url}:`, error.message);
+  } catch (error: unknown) {
+    console.warn(`[Puppeteer] Failed to scrape ${url}:`, error instanceof Error ? error.message : error);
     return null;
   } finally {
     if (browser) await browser.close();

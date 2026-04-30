@@ -34,17 +34,19 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
       }
       await createUserWithEmailAndPassword(auth, email, password);
       setStep('aadhaar');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
       // If user exists, try signing in
-      if (err.code === 'auth/email-already-in-use') {
+      if (error.code === 'auth/email-already-in-use') {
         try {
           await signInWithEmailAndPassword(auth, email, password);
           setStep('aadhaar');
-        } catch (innerErr: any) {
-          setError(innerErr.message);
+        } catch (innerErr: unknown) {
+          const iErr = innerErr as { message?: string };
+          setError(iErr.message || 'Authentication failed');
         }
       } else {
-        setError(err.message);
+        setError(error.message || 'Authentication failed');
       }
     } finally {
       setLoading(false);
@@ -63,7 +65,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
       }
       
       setStep('complete');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save failed:", err);
       setStep('complete'); // Proceed anyway for demo
     } finally {
@@ -95,7 +97,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
             <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl mx-auto">🛡️</div>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-white">Secure Onboarding</h2>
-              <p className="text-sm text-zinc-500 leading-relaxed">Let's verify your identity and documents to ensure your electoral readiness.</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">Let&apos;s verify your identity and documents to ensure your electoral readiness.</p>
             </div>
             <button onClick={() => setStep('auth')} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm">Get Started</button>
           </div>

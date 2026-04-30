@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const STEPS = [
   {
@@ -35,12 +35,7 @@ const STEPS = [
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
   const [isAuditing, setIsAuditing] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const handleNext = () => {
     if (STEPS[currentStep].id === 'digilocker' && !isAuditing) {
@@ -58,8 +53,6 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       onComplete();
     }
   };
-
-  if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-xl animate-in fade-in duration-500">

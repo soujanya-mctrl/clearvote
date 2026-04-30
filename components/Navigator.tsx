@@ -54,7 +54,7 @@ export default function Navigator() {
   };
 
   return (
-    <div className="w-full max-w-2xl space-y-12 animate-in fade-in duration-1000 pb-20">
+    <div className="w-full max-w-2xl space-y-12 animate-in fade-in duration-1000 pb-20 pt-20">
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-black tracking-tighter text-white text-glow">Process Navigator</h2>
         <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Interactive Protocol Intelligence</p>

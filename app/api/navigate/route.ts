@@ -19,8 +19,9 @@ export async function POST(req: Request) {
     const steps = await generateProcessFlow(query, sources);
 
     return NextResponse.json({ steps });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Navigator API] Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate flow" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to generate flow";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -49,8 +49,8 @@ export default function Verifier() {
       const data = await response.json();
       if (!response.ok || data.error) throw new Error(data.error || `Verification failed`);
       setResult(data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ export default function Verifier() {
                       {source.snippet && (
                         <div className="mx-4 p-5 bg-white/[0.02] border-l-2 border-white/10 rounded-r-2xl">
                           <p className="text-xs text-zinc-500 italic leading-relaxed font-light">
-                            "{source.snippet}"
+                            &quot;{source.snippet}&quot;
                           </p>
                         </div>
                       )}

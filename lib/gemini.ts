@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { FactCheckResponse, Source, CandidateProfile, CandidatePromise } from "./types";
+import { FactCheckResponse, Source, CandidateProfile } from "./types";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey || "");

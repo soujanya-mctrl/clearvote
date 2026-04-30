@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function EligibilityCheck({ onPassed }: { onPassed: () => void }) {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({ age: false, citizen: false, resident: false });
   const [failed, setFailed] = useState(false);
 
   const questions = [

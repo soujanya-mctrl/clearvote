@@ -25,8 +25,8 @@ export default function CandidateResearch() {
       const data = await response.json();
       if (data.error) throw new Error(data.error);
       setProfile(data);
-    } catch (err: any) {
-      setError(err.message || "Analysis failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ export default function CandidateResearch() {
                   </p>
                   <div className="p-5 bg-black/20 rounded-2xl border-l-2 border-white/10">
                     <p className="text-xs text-zinc-500 leading-relaxed font-light italic">
-                      "{p.context}"
+                      &quot;{p.context}&quot;
                     </p>
                   </div>
                 </div>

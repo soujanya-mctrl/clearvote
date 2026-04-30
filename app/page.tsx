@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Verifier from '../components/Verifier';
 import Dashboard from '../components/Dashboard';
 import Navigator from '../components/Navigator';
@@ -15,17 +15,20 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showEligibility, setShowEligibility] = useState(false);
-  const [isEligible, setIsEligible] = useState(false);
+  const [isEligible, setIsEligible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('clearvote_eligible') === 'true';
+    }
+    return false;
+  });
 
-  useEffect(() => {
+  const handleTabChange = (tabId: Tab) => {
+    setActiveTab(tabId);
     const hasSeenOnboarding = localStorage.getItem('clearvote_onboarding_seen');
-    const eligible = localStorage.getItem('clearvote_eligible');
-    if (eligible === 'true') setIsEligible(true);
-    
-    if (!hasSeenOnboarding && activeTab === 'dashboard') {
+    if (tabId === 'dashboard' && !hasSeenOnboarding && !isEligible) {
       setShowEligibility(true);
     }
-  }, [activeTab]);
+  };
 
   const handleEligibilityPassed = () => {
     localStorage.setItem('clearvote_eligible', 'true');
@@ -112,7 +115,7 @@ export default function Home() {
           isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
           {/* Header */}
-          <div className="flex items-center justify-between px-2 mb-4">
+          <div className="flex items-center justify-between px-2 mb-4 mt-8">
             <h1 className="text-sm font-bold tracking-tight">ClearVote</h1>
             <button 
               onClick={() => setIsSidebarOpen(false)}
@@ -129,7 +132,7 @@ export default function Home() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-xs font-medium ${
                   activeTab === tab.id 
                   ? 'bg-white/10 text-white' 

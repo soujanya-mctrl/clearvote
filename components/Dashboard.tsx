@@ -38,11 +38,13 @@ const INITIAL_DOCS: (VerificationDocument & { howToFix: string })[] = [
   }
 ];
 
+type DashboardDoc = VerificationDocument & { howToFix: string };
+
 export default function Dashboard() {
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>(null);
+  const [documents, setDocuments] = useState<DashboardDoc[]>([]);
+  const [profile, setProfile] = useState<{ email?: string; phone?: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<DashboardDoc | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   useEffect(() => {
