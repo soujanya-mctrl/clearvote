@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function EligibilityCheck({ onPassed }: { onPassed: () => void }) {
+export default function EligibilityCheck({ onPassed, onSkip }: { onPassed: () => void, onSkip: () => void }) {
   const [step, setStep] = useState(0);
   const [failed, setFailed] = useState(false);
 
@@ -86,6 +86,17 @@ export default function EligibilityCheck({ onPassed }: { onPassed: () => void })
         >
           Yes
         </button>
+      </div>
+      <div className="pt-2 flex flex-col gap-4">
+        <button 
+          onClick={() => onSkip()}
+          className="w-full py-3 bg-white/[0.02] border border-white/5 rounded-xl font-bold text-[9px] uppercase tracking-[0.2em] text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
+        >
+          Skip
+        </button>
+        <p className="text-[12px] text-zinc-600 font-medium leading-tight px-4 italic opacity-80">
+          * Legal Disclaimer: This is a private demonstration. It is not an official government portal. ClearVote is not affiliated with the Election Commission of India.
+        </p>
       </div>
     </div>
 

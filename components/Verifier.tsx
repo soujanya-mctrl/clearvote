@@ -138,7 +138,10 @@ export default function Verifier() {
     <div className="w-full max-w-2xl flex flex-col items-center pb-20">
       {!result && !loading && (
         <div className="text-center mb-6 space-y-3 animate-in fade-in duration-1000 px-4">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tighter text-white text-glow">How can I help?</h2>
+          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tighter text-white flex items-center justify-center gap-0.5">
+            <span className="font-thin opacity-30">Clear</span>
+            <span className="text-glow">Vote</span>
+          </h2>
           <p className="text-zinc-600 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-[0.2em] sm:tracking-[0.4em]">Verify Election Integrity with AI</p>
         </div>
       )}
