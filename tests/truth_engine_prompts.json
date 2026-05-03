@@ -1,0 +1,51 @@
+[
+  {
+    "category": "EVM & VVPAT",
+    "claim": "The VVPAT slip can be handled by the voter to verify the candidate mark.",
+    "expected_verdict": "False",
+    "explanation": "The VVPAT slip is displayed behind a glass window for 7 seconds and then automatically falls into a sealed ballot box. The voter is never allowed to touch or handle the slip to ensure the secrecy and integrity of the ballot.",
+    "official_citation": "ECI Handbook for Presiding Officers, 2023"
+  },
+  {
+    "category": "Voter Rights",
+    "claim": "A voter can cast their vote even if their name is missing from the electoral roll, provided they have a valid Aadhaar card.",
+    "expected_verdict": "False",
+    "explanation": "Having a name on the electoral roll is a mandatory requirement for voting. A Voter ID or Aadhaar card serves as proof of identity, but not proof of registration. If the name is missing from the roll, the person cannot vote. (Section 62 of RP Act, 1951)",
+    "official_citation": "Representation of the People Act, 1951"
+  },
+  {
+    "category": "Election Conduct",
+    "claim": "Candidates are allowed to provide free transportation to voters to reach the polling station.",
+    "expected_verdict": "False",
+    "explanation": "Providing free transportation to voters by a candidate or their agent is considered a 'Corrupt Practice' under Section 123(5) of the Representation of the People Act, 1951, and is strictly prohibited.",
+    "official_citation": "Model Code of Conduct (MCC) Guidelines"
+  },
+  {
+    "category": "EVM Mechanics",
+    "claim": "EVMs are equipped with a 'Real Time Clock' that records the exact time of every vote cast.",
+    "expected_verdict": "True",
+    "explanation": "Modern M3 EVMs have a real-time clock and a memory that records the date and time of each vote cast. This is used to prevent and detect any unauthorized voting outside the permitted polling hours.",
+    "official_citation": "ECI Technical Expert Committee Report on EVMs"
+  },
+  {
+    "category": "Registration",
+    "claim": "A citizen can be registered as a voter in more than one constituency if they own property in both places.",
+    "expected_verdict": "False",
+    "explanation": "Under Section 17 of the RP Act, 1950, no person is entitled to be registered in the electoral roll for more than one constituency. Registering in multiple places is a punishable offence.",
+    "official_citation": "Representation of the People Act, 1950"
+  },
+  {
+    "category": "Polling Day",
+    "claim": "If a voter accidentally presses the wrong button on the EVM, they can ask the Presiding Officer to reset their vote.",
+    "expected_verdict": "False",
+    "explanation": "Once a button is pressed and the long beep is heard, the vote is recorded and cannot be changed or reset. The voter should carefully check the symbol and light before pressing the button.",
+    "official_citation": "ECI Voter Guide"
+  },
+  {
+    "category": "Truth Engine Logic",
+    "claim": "The 'None of the Above' (NOTA) option, if it receives the most votes, results in a re-election with new candidates.",
+    "expected_verdict": "False",
+    "explanation": "In India, even if NOTA receives the highest number of votes, the candidate with the second-highest number of votes is declared the winner. NOTA is a tool for expressing dissent, but it does not currently trigger a re-election.",
+    "official_citation": "ECI FAQ - NOTA Section"
+  }
+]

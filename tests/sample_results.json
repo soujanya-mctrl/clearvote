@@ -1,0 +1,70 @@
+[
+  {
+    "module": "Truth Engine (Verify)",
+    "test_id": "TC-VER-001",
+    "input": {
+      "query": "Is it true that EVMs can be hacked via Bluetooth?",
+      "context_provided": false
+    },
+    "output": {
+      "verdict": "False",
+      "confidence_score": 100,
+      "explanation": "EVMs used in Indian elections are standalone machines with no network connectivity. They do not have Bluetooth, Wi-Fi, or any wireless communication hardware. The ECI has repeatedly demonstrated that these machines are mathematically and physically tamper-proof in their current configuration.",
+      "sources": [
+        {
+          "title": "ECI - EVM FAQ",
+          "url": "https://www.eci.gov.in/evm-voter-id/evm-faq/"
+        }
+      ]
+    }
+  },
+  {
+    "module": "Truth Engine (Research)",
+    "test_id": "TC-RES-002",
+    "input": {
+      "query": "Rahul Gandhi promises for 2024",
+      "context_provided": true
+    },
+    "output": {
+      "name": "Rahul Gandhi",
+      "party": "Indian National Congress (INC)",
+      "constituency": "Wayanad / Rae Bareli",
+      "promises": [
+        {
+          "category": "Economy",
+          "promise": "Mahalakshmi Scheme: ₹1 lakh per year to one woman from every poor family.",
+          "context": "Part of the 'Nyay' pillars focusing on direct cash transfers."
+        },
+        {
+          "category": "Employment",
+          "promise": "Pehli Naukri Pakki: Right to Apprenticeship for every diploma/degree holder.",
+          "context": "Ensuring one year of formal employment training with a stipend."
+        }
+      ]
+    }
+  },
+  {
+    "module": "Navigator (Flow)",
+    "test_id": "TC-NAV-003",
+    "input": {
+      "query": "Challenged Vote Procedure",
+      "context_provided": true
+    },
+    "output": {
+      "steps": [
+        {
+          "title": "Identification Challenge",
+          "content": "A polling agent can challenge your identity by depositing a small fee (₹2) with the Presiding Officer."
+        },
+        {
+          "title": "Summary Inquiry",
+          "content": "The Presiding Officer conducts a summary inquiry, checking your identity against the electoral roll and documents."
+        },
+        {
+          "title": "Verdict",
+          "content": "If the challenge is not established, you are allowed to vote. If identity is found to be false, you may be handed over to the police."
+        }
+      ]
+    }
+  }
+]
