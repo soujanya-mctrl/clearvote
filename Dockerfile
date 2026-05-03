@@ -1,12 +1,10 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 # --- Dependencies ---
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
-# Remove puppeteer (not needed in production, uses fallback context)
-RUN rm -rf node_modules/puppeteer node_modules/puppeteer-core
+RUN npm ci
 
 # --- Builder ---
 FROM base AS builder
@@ -24,9 +22,18 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# Install Chromium and dependencies for Puppeteer
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -40,3 +47,4 @@ USER nextjs
 EXPOSE 8080
 
 CMD ["node", "server.js"]
+
