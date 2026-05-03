@@ -41,15 +41,14 @@
     @apply w-full max-w-lg sm:max-w-2xl md:max-w-4xl mx-auto px-4;
   }
 
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
+  /* Hide Scrollbars while keeping functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
   }
 }
 

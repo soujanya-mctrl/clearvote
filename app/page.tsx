@@ -32,10 +32,13 @@ export default function Home() {
   const [isAnimComplete, setIsAnimComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
     setShowPreloader(true);
+    const profile = localStorage.getItem('clearvote_user_profile');
+    if (profile) setUserProfile(JSON.parse(profile));
   }, []);
 
   useEffect(() => {
@@ -130,6 +133,8 @@ export default function Home() {
       }));
     }
     
+    const profileData = localStorage.getItem('clearvote_user_profile');
+    if (profileData) setUserProfile(JSON.parse(profileData));
     setShowOnboarding(false);
   };
 
@@ -309,11 +314,17 @@ export default function Home() {
           {/* Bottom Profile */}
           <div className="mt-auto border-t border-white/5 pt-4">
             <div className={`flex items-center gap-3 px-2 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group ${isCollapsed ? 'justify-center px-0' : ''}`}>
-              <div className="w-7 h-7 shrink-0 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">SM</div>
+              <div className="w-7 h-7 shrink-0 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                {userProfile ? userProfile.email[0].toUpperCase() : 'G'}
+              </div>
               {!isCollapsed && (
                 <div className="flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-                  <p className="text-xs font-medium truncate text-zinc-300">Soujanya Mallick</p>
-                  <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Admin Account</p>
+                  <p className="text-xs font-medium truncate text-zinc-300 capitalize">
+                    {userProfile ? userProfile.email.split('@')[0] : 'Guest'}
+                  </p>
+                  <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">
+                    {userProfile ? 'Verified Account' : 'Limited Access'}
+                  </p>
                 </div>
               )}
             </div>
