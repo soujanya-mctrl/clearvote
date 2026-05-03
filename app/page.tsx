@@ -260,7 +260,11 @@ export default function Home() {
 
 
       {/* Minimalist Sidebar (Desktop Only) */}
-      <aside className={`hidden md:flex ${isCollapsed ? 'w-[72px]' : 'w-64'} bg-[#0f0f10] flex-col border-r border-white/5 overflow-hidden transition-all duration-500 ease-in-out z-50`}>
+      <aside 
+        id="main-sidebar"
+        aria-label="Main Navigation"
+        className={`hidden md:flex ${isCollapsed ? 'w-[72px]' : 'w-64'} bg-[#0f0f10] flex-col border-r border-white/5 overflow-hidden transition-all duration-500 ease-in-out z-50`}
+      >
         <div className={`flex flex-col h-full p-4 gap-4 ${isCollapsed ? 'w-[72px]' : 'w-64'} transition-all duration-500`}>
           <div className="flex items-center justify-between px-2 mb-4 mt-4">
             {!isCollapsed && (
@@ -271,6 +275,9 @@ export default function Home() {
             )}
             <button 
               onClick={() => setIsCollapsed(!isCollapsed)}
+              aria-expanded={!isCollapsed}
+              aria-controls="main-sidebar"
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               className={`p-1.5 rounded-lg bg-white/5 border border-white/5 text-zinc-500 hover:text-white transition-all ${isCollapsed ? 'mx-auto' : ''}`}
             >
               <svg className={`w-4 h-4 transition-transform duration-500 ${isCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,10 +287,13 @@ export default function Home() {
           </div>
 
           {/* Navigation (Desktop) */}
-          <div className="hidden md:flex flex-1 flex-col gap-1">
+          <nav className="hidden md:flex flex-1 flex-col gap-1" role="tablist">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls="main-content"
                 onClick={() => handleTabChange(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-xs font-medium ${
                   activeTab === tab.id 
@@ -292,11 +302,11 @@ export default function Home() {
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={isCollapsed ? tab.label : ''}
               >
-                <div className="shrink-0">{tab.icon}</div>
+                <div className="shrink-0" aria-hidden="true">{tab.icon}</div>
                 {!isCollapsed && <span className="truncate animate-in fade-in slide-in-from-left-2 duration-300">{tab.label}</span>}
               </button>
             ))}
-          </div>
+          </nav>
 
 
           {/* Onboarding Help Re-trigger */}
@@ -340,23 +350,32 @@ export default function Home() {
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 overflow-hidden flex flex-col relative bg-background p-7">
+      <div 
+        id="main-content"
+        role="main"
+        aria-live="polite"
+        className="flex-1 overflow-hidden flex flex-col relative bg-background p-7"
+      >
         
         {/* Sticky Header */}
-        <header className="sticky top-0 z-40 w-full bg-transparent flex items-center justify-between px-4 sm:px-6 py-2">
+        <header className="sticky top-0 z-40 w-full bg-transparent flex items-center justify-between px-4 sm:px-6 py-2" aria-label="Tool options">
           <div className="hidden md:flex items-center gap-3 sm:gap-4 md:min-w-[200px]">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-1">
+            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-1">
               <span className="font-thin opacity-50">
                 {activeTab === 'intelligence' ? 'Intelligence' : activeTab === 'practice' ? 'Practice' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </span>
               <span>
                 {activeTab === 'intelligence' ? 'Hub' : activeTab === 'practice' ? 'Lab' : ''}
               </span>
-            </span>
+            </h2>
           </div>
 
             {activeTab === 'intelligence' && (
-              <div className="absolute left-1/2 -translate-x-1/2 flex p-1 bg-white/5 rounded-full border border-white/5 scale-90 sm:scale-100">
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 flex p-1 bg-white/5 rounded-full border border-white/5 scale-90 sm:scale-100"
+                role="group"
+                aria-label="Truth Engine Mode"
+              >
                  <div 
                    className={`absolute top-0.5 bottom-0.5 transition-all duration-500 ease-out bg-white/10 border border-white/10 rounded-full shadow-lg ${
                      intelMode === 'verify' ? 'left-1 w-[calc(50%-0.25rem)]' : 'left-[50%] w-[calc(50%-0.25rem)]'
@@ -364,6 +383,7 @@ export default function Home() {
                  />
                  <button 
                    onClick={() => setIntelMode('verify')}
+                   aria-pressed={intelMode === 'verify'}
                    className={`relative z-10 px-5 sm:px-8 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
                      intelMode === 'verify' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
                    }`}
@@ -372,6 +392,7 @@ export default function Home() {
                  </button>
                  <button 
                    onClick={() => setIntelMode('research')}
+                   aria-pressed={intelMode === 'research'}
                    className={`relative z-10 px-5 sm:px-8 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
                      intelMode === 'research' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
                    }`}

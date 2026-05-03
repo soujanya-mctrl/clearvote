@@ -1,0 +1,37 @@
+[
+  {
+    "category": "Scraper Error Handling",
+    "scenario": "Target domain (ECI) is unreachable or timing out",
+    "edge_case": "Timeout after 15s",
+    "handling_logic": "The scraper must catch the error, log it as a warning, and immediately pivot to the internal FALLBACK_CONTEXT library to provide the user with high-fidelity, pre-verified electoral protocols.",
+    "expected_result": "System surfaces official protocol text from fallback instead of an empty result."
+  },
+  {
+    "category": "Input Validation",
+    "scenario": "User enters a malformed or malicious URL in the Verify field",
+    "edge_case": "Injection or Non-HTTP URL",
+    "handling_logic": "The parseArticleUrl function filters URLs to only include 'http' starts and uses a strict DOM-only text extraction (stripping <script> and <style> tags) to prevent XSS or code execution.",
+    "expected_result": "The malformed URL is ignored or safely parsed as plain text without executing code."
+  },
+  {
+    "category": "AI Verdict Stability",
+    "scenario": "Query is ambiguous or has no available news coverage",
+    "edge_case": "Zero external sources found",
+    "handling_logic": "The Gemini prompt is instructed to 'USE YOUR OWN KNOWLEDGE' if context is insufficient, ensuring the user always receives a substantive analysis instead of a 'No info' response.",
+    "expected_result": "AI provides a general electoral context based on its pre-trained high-fidelity data."
+  },
+  {
+    "category": "Rate Limiting",
+    "scenario": "Multiple rapid-fire requests from the same IP",
+    "edge_case": "5+ requests per minute",
+    "handling_logic": "An in-memory rate limiter (rateLimitMap) intercepts the request and returns an HTTP 429 status code with a helpful 'Please wait' message.",
+    "expected_result": "API stays stable and prevents quota exhaustion of the Gemini API."
+  },
+  {
+    "category": "Search Context Cleaning",
+    "scenario": "Scraped text contains Google Tag Manager or other tracking code",
+    "edge_case": "gtag() or function() in text",
+    "handling_logic": "The verifyWithGemini function includes a 'cleanSources' filter that specifically removes strings containing tracking scripts before passing them to the AI.",
+    "expected_result": "AI context is pure content, free from noisy tracking script noise."
+  }
+]

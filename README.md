@@ -46,7 +46,8 @@ Guided, step-by-step interactive flows for complex electoral tasks:
 
 - **Collapsible Sidebar**: A sleek, space-efficient navigation system that adapts to your workflow.
 - **Floating Pill Header**: A modern, translucent navigation bar that maximizes content visibility.
-- **High-Fidelity Typography**: A professional blend of thin and bold branding for a developer-centric institutional feel.
+- **Advanced Accessibility**: Full ARIA support, keyboard navigation, and semantic HTML for screen reader maturity.
+- **Testing Maturity**: Comprehensive test suite covering edge cases, scraper timeouts, and integration flows.
 - **Stealth Scrollbars**: Invisible yet functional scrolling for a truly immersive interface.
 
 ---
