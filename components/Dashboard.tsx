@@ -83,32 +83,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="w-full max-w-3xl space-y-10 animate-in fade-in duration-1000 pb-20 px-4">
+    <div className="w-full max-w-3xl space-y-6 sm:space-y-10 animate-in fade-in duration-1000 pb-20 px-4 sm:px-0">
       
       {/* Personalized Header */}
-      <div className="flex items-center justify-between glass-card p-6 premium-gradient">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between glass-card p-5 sm:p-6 premium-gradient gap-4">
         <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-xl font-extrabold text-white shadow-xl">
+           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-lg sm:text-xl font-extrabold text-white shadow-xl">
              {profile?.email?.[0]?.toUpperCase() || 'U'}
            </div>
            <div>
-             <h2 className="text-lg font-bold text-white tracking-tight">{profile?.email || 'Guest User'}</h2>
-             <p className="text-[9px] text-zinc-500 font-extrabold uppercase tracking-[0.2em]">Verified Electoral Profile</p>
+             <h2 className="text-base sm:text-lg font-bold text-white tracking-tight truncate max-w-[150px] sm:max-w-none">{profile?.email || 'Guest User'}</h2>
+             <p className="text-[8px] sm:text-[9px] text-zinc-500 font-extrabold uppercase tracking-[0.2em]">Verified Electoral Profile</p>
            </div>
         </div>
-        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/20 rounded-xl">
-           <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-           <span className="text-[9px] font-black text-success uppercase tracking-widest">Identity Synced</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-xl">
+           <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+           <span className="text-[8px] sm:text-[9px] font-black text-success uppercase tracking-widest">Identity Synced</span>
         </div>
       </div>
 
       {/* Document Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {documents.map((doc) => (
           <div 
             key={doc.id} 
             onClick={() => setSelectedDoc(doc)}
-            className="glass-card p-4 group cursor-pointer hover:bg-white/[0.06] transition-all duration-300 relative overflow-hidden"
+            className="glass-card p-5 group cursor-pointer hover:bg-white/[0.06] transition-all duration-300 relative overflow-hidden"
           >
             {verifyingId === doc.id && (
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex items-center justify-center">
@@ -132,16 +132,16 @@ export default function Dashboard() {
                 {doc.status}
               </span>
             </div>
-            <h3 className="text-[11px] font-bold text-white mb-0.5 truncate">{doc.name}</h3>
-            <p className="text-[8px] text-zinc-600 font-medium truncate">View details & actions</p>
+            <h3 className="text-xs sm:text-[11px] font-bold text-white mb-0.5 truncate">{doc.name}</h3>
+            <p className="text-[9px] sm:text-[8px] text-zinc-600 font-medium truncate">View details & actions</p>
           </div>
         ))}
       </div>
 
       {/* Detail Modal */}
       {selectedDoc && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/60 backdrop-blur-2xl animate-in fade-in duration-300">
-          <div className="w-full max-w-lg glass-card premium-gradient p-10 space-y-8 relative shadow-[0_0_50px_rgba(255,255,255,0.05)] border-white/10">
+        <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-6 bg-black/60 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full sm:max-w-lg glass-card premium-gradient p-8 sm:p-10 space-y-6 sm:space-y-8 relative shadow-[0_0_50px_rgba(255,255,255,0.05)] border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem]">
             <button 
               onClick={() => setSelectedDoc(null)}
               className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full text-zinc-500 hover:text-white transition-all"
@@ -149,38 +149,38 @@ export default function Dashboard() {
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
 
-            <div className="flex items-center gap-6">
-               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-extrabold ${
+            <div className="flex items-center gap-5 sm:gap-6">
+               <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-lg sm:text-xl font-extrabold ${
                  selectedDoc.status === 'verified' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
                }`}>
                  {verifyingId === selectedDoc.id ? '...' : selectedDoc.status === 'verified' ? '✓' : '!'}
                </div>
-               <div>
-                  <h3 className="text-2xl font-extrabold text-white tracking-tighter text-glow">{selectedDoc.name}</h3>
-                  <p className="text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.3em]">
+               <div className="min-w-0">
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tighter text-glow truncate">{selectedDoc.name}</h3>
+                  <p className="text-[9px] sm:text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.2em] sm:tracking-[0.3em] truncate">
                     {verifyingId === selectedDoc.id ? 'Analyzing Protocol...' : selectedDoc.status}
                   </p>
                </div>
             </div>
 
-            <p className="text-sm text-zinc-400 leading-relaxed font-light">
+            <p className="text-[13px] sm:text-sm text-zinc-400 leading-relaxed font-light">
               {selectedDoc.description}
             </p>
 
-            <div className="grid gap-4">
-               <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
+            <div className="grid gap-3 sm:gap-4">
+               <div className="p-5 sm:p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
-                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.2em]">Procurement Path</p>
+                    <p className="text-[8px] sm:text-[9px] text-zinc-600 font-black uppercase tracking-[0.2em]">Procurement Path</p>
                   </div>
-                  <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-zinc-300 font-medium leading-relaxed">
                     {selectedDoc.howToGet}
                   </p>
                </div>
-               <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
+               <div className="p-5 sm:p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2">
-                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.2em]">Correction Path</p>
+                    <p className="text-[8px] sm:text-[9px] text-zinc-600 font-black uppercase tracking-[0.2em]">Correction Path</p>
                   </div>
-                  <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-zinc-300 font-medium leading-relaxed">
                     {selectedDoc.howToFix}
                   </p>
                </div>
@@ -190,20 +190,26 @@ export default function Dashboard() {
               <button 
                 onClick={() => handleVerify(selectedDoc.id)}
                 disabled={verifyingId === selectedDoc.id}
-                className="w-full py-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl disabled:opacity-50"
+                className="w-full py-4.5 sm:py-4 bg-white text-black rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl disabled:opacity-50"
               >
                 {verifyingId === selectedDoc.id ? 'Processing Protocol...' : 'Sync with DigiLocker'}
               </button>
             )}
+            
+            {/* Mobile Swipe-down indicator */}
+            <div className="sm:hidden flex justify-center pt-2">
+               <div className="w-12 h-1 bg-white/10 rounded-full" />
+            </div>
           </div>
         </div>
       )}
 
       {/* Compact Support Footer */}
-      <div className="p-6 glass-card bg-zinc-900/40 text-center space-y-1 animate-float">
+      <div className="p-5 sm:p-6 glass-card bg-zinc-900/40 text-center space-y-1 animate-float">
          <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.3em]">Official Support Center</p>
          <p className="text-xs text-zinc-400 font-light">Direct assistance: <span className="text-white font-bold text-glow">1950</span></p>
       </div>
     </div>
+
   );
 }
