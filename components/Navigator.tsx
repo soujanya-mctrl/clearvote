@@ -25,25 +25,33 @@ const FEATURED_FLOWS = [
   }
 ];
 
+const EXAMPLE_PROMPTS = [
+  "How to register for a voter ID card?",
+  "Process for EVM verification",
+  "How to change address in voter roll?",
+  "Documents needed for voting"
+];
+
 export default function Navigator() {
   const [query, setQuery] = useState('');
   const [activeFlow, setActiveFlow] = useState(FEATURED_FLOWS[0]);
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const handleSearch = async (e?: React.FormEvent, customQuery?: string) => {
+    if (e) e.preventDefault();
+    const finalQuery = customQuery || query;
+    if (!finalQuery.trim()) return;
     setLoading(true);
     try {
       const response = await fetch('/api/navigate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: finalQuery }),
       });
       const data = await response.json();
       if (data.steps) {
-        setActiveFlow({ id: 'dynamic', title: query, steps: data.steps });
+        setActiveFlow({ id: 'dynamic', title: finalQuery, steps: data.steps });
         setActiveStep(0);
       }
     } catch (err) {
@@ -56,26 +64,43 @@ export default function Navigator() {
   return (
     <div className="w-full max-w-2xl space-y-12 animate-in fade-in duration-1000 pb-20 pt-20">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-black tracking-tighter text-white text-glow">Process Navigator</h2>
-        <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Interactive Protocol Intelligence</p>
+        <h2 className="text-3xl font-extrabold tracking-tighter text-white text-glow">Process Navigator</h2>
+        <p className="text-zinc-600 text-[10px] font-extrabold uppercase tracking-[0.4em]">Interactive Protocol Intelligence</p>
       </div>
 
-      <form onSubmit={handleSearch} className="relative group max-w-xl mx-auto w-full">
-        <div className="absolute inset-0 bg-white/5 blur-2xl rounded-2xl group-focus-within:bg-white/10 transition-all duration-500" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask about a specific election process..."
-          className="w-full px-8 py-4 bg-[#171717] border border-white/5 rounded-2xl text-sm transition-all focus:border-white/20 focus:ring-0 placeholder:text-zinc-600 shadow-2xl relative z-10"
-        />
-        <button
-          disabled={loading || !query.trim()}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white text-black rounded-xl flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-20 transition-all z-20 shadow-xl"
-        >
-          {loading ? '...' : '→'}
-        </button>
-      </form>
+      <div className={`w-full transition-all duration-700 ${activeFlow.id === 'dynamic' || loading ? 'sticky bottom-10 z-40 px-6' : 'relative mt-4'}`}>
+        <form onSubmit={(e) => handleSearch(e)} className="relative group max-w-xl mx-auto w-full">
+          <div className="absolute inset-0 bg-[#171717]/80 backdrop-blur-2xl rounded-2xl group-focus-within:bg-white/5 transition-all duration-500 border border-white/5 shadow-2xl" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask about a specific election process..."
+            className="w-full px-8 py-4 bg-transparent rounded-2xl text-sm transition-all focus:border-white/20 focus:ring-0 placeholder:text-zinc-600 relative z-10"
+          />
+          <button
+            type="submit"
+            disabled={loading || !query.trim()}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white text-black rounded-xl flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-20 transition-all z-20 shadow-xl"
+          >
+            {loading ? '...' : '→'}
+          </button>
+        </form>
+
+        {activeFlow.id !== 'dynamic' && !loading && (
+          <div className="flex flex-wrap justify-center gap-3 mt-6 animate-in fade-in slide-in-from-top-4 duration-1000 delay-300">
+            {EXAMPLE_PROMPTS.map((prompt, i) => (
+              <button
+                key={i}
+                onClick={() => { setQuery(prompt); handleSearch(undefined, prompt); }}
+                className="px-4 py-2 rounded-full border border-white/5 bg-white/[0.02] text-[10px] text-zinc-500 hover:text-white hover:bg-white/5 hover:border-white/10 transition-all"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-3 justify-center">
         {FEATURED_FLOWS.map((flow) => (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Verifier from '../components/Verifier';
 import Dashboard from '../components/Dashboard';
 import Navigator from '../components/Navigator';
@@ -8,19 +8,21 @@ import CandidateResearch from '../components/CandidateResearch';
 import AuthOnboarding from '../components/AuthOnboarding';
 import EligibilityCheck from '../components/EligibilityCheck';
 
-type Tab = 'dashboard' | 'verifier' | 'navigator' | 'research';
+type Tab = 'dashboard' | 'intelligence' | 'navigator';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<Tab>('verifier');
+  const [activeTab, setActiveTab] = useState<Tab>('intelligence');
+  const [intelMode, setIntelMode] = useState<'verify' | 'research'>('verify');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showEligibility, setShowEligibility] = useState(false);
-  const [isEligible, setIsEligible] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('clearvote_eligible') === 'true';
+  const [isEligible, setIsEligible] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('clearvote_eligible') === 'true') {
+      setIsEligible(true);
     }
-    return false;
-  });
+  }, []);
 
   const handleTabChange = (tabId: Tab) => {
     setActiveTab(tabId);
@@ -57,20 +59,11 @@ export default function Home() {
 
   const tabs = [
     { 
-      id: 'verifier' as Tab, 
-      label: 'Verifier', 
+      id: 'intelligence' as Tab, 
+      label: 'Truth Engine', 
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      )
-    },
-    { 
-      id: 'research' as Tab, 
-      label: 'Candidate Research', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
       )
     },
@@ -107,16 +100,13 @@ export default function Home() {
 
       {/* Minimalist Sidebar */}
       <aside 
-        className={`h-screen bg-[#111] flex flex-col transition-all duration-300 ease-in-out z-50 ${
-          isSidebarOpen ? 'w-64' : 'w-0'
-        } relative border-r border-white/5 overflow-hidden`}
-      >
-        <div className={`flex flex-col h-full p-4 gap-4 transition-opacity duration-200 ${
-          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed md:relative inset-y-0 left-0 bg-[#0f0f10] flex flex-col transition-all duration-300 z-50 border-r border-white/5 overflow-hidden ${
+          isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'
         }`}>
+        <div className={`flex flex-col h-full p-4 gap-4 w-64 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
           {/* Header */}
-          <div className="flex items-center justify-between px-2 mb-4 mt-8">
-            <h1 className="text-sm font-bold tracking-tight">ClearVote</h1>
+          <div className="flex items-center justify-between px-2 mb-4 mt-12">
+            <h1 className="text-sm font-extrabold tracking-tight">ClearVote</h1>
             <button 
               onClick={() => setIsSidebarOpen(false)}
               className="p-1.5 hover:bg-white/5 rounded-md transition-colors text-zinc-600"
@@ -167,41 +157,103 @@ export default function Home() {
         </div>
       </aside>
 
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-white/[0.03] rounded-full blur-[100px]" />
+        <div className="absolute -bottom-[10%] left-[20%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[150px]" />
+      </div>
+
       {/* Toggle when closed */}
-      {!isSidebarOpen && (
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="fixed top-4 left-4 p-2 bg-[#111] border border-white/5 rounded-md hover:bg-white/10 transition-all z-50 text-zinc-500"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
+      {/* Toggle when closed (Removed as it's now in the header) */}
+
+      
 
       {/* Main Area */}
-      <div className="flex-1 overflow-y-auto flex flex-col relative bg-background">
-        <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full pb-20">
-          {activeTab === 'verifier' && <Verifier />}
-          {activeTab === 'research' && <CandidateResearch />}
-          {activeTab === 'dashboard' && (
-            !isEligible ? (
-              <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700">
-                <div className="w-24 h-24 rounded-[2.5rem] bg-white/5 border border-white/10 flex items-center justify-center text-4xl shadow-2xl animate-float">🛡️</div>
-                <div className="text-center space-y-2">
-                   <h2 className="text-3xl font-black tracking-tighter text-glow">Identity Locked</h2>
-                   <p className="text-zinc-500 text-sm font-light max-w-xs mx-auto">Verify your legal voting eligibility to unlock your personal Readiness Vault.</p>
-                </div>
-                <button 
-                  onClick={() => setShowEligibility(true)}
-                  className="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:scale-110 active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)]"
-                >
-                  Check Eligibility
-                </button>
+      <div className="flex-1 overflow-hidden flex flex-col relative bg-background">
+        
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-30 w-full border-b border-white/5 bg-[#0f0f10]/60 backdrop-blur-xl flex items-center justify-between px-6 py-4">
+           <div className="flex items-center gap-4 min-w-[200px]">
+             {!isSidebarOpen && (
+               <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-zinc-400"
+               >
+                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                 </svg>
+               </button>
+             )}
+             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">
+               {activeTab === 'intelligence' ? 'Intelligence Hub' : activeTab}
+             </span>
+           </div>
+
+            {activeTab === 'intelligence' && (
+              <div className="absolute left-1/2 -translate-x-1/2 flex p-1 bg-white/5 rounded-full border border-white/5 scale-90 sm:scale-100">
+                 <div 
+                   className={`absolute top-1 bottom-1 transition-all duration-500 ease-out bg-white/10 border border-white/10 rounded-full shadow-lg ${
+                     intelMode === 'verify' ? 'left-1 w-[calc(50%-0.25rem)]' : 'left-[50%] w-[calc(50%-0.25rem)]'
+                   }`} 
+                 />
+                 <button 
+                   onClick={() => setIntelMode('verify')}
+                   className={`relative z-10 px-5 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
+                     intelMode === 'verify' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                   }`}
+                 >
+                   Verify
+                 </button>
+                 <button 
+                   onClick={() => setIntelMode('research')}
+                   className={`relative z-10 px-5 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
+                     intelMode === 'research' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                   }`}
+                 >
+                   Research
+                 </button>
               </div>
-            ) : <Dashboard />
-          )}
-          {activeTab === 'navigator' && <Navigator />}
+            )}
+
+           <div className="hidden md:flex items-center justify-end gap-3 min-w-[200px]">
+              <div className="px-3 py-1.5 bg-success/10 border border-success/20 rounded-full flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                 <span className="text-[8px] font-black text-success uppercase tracking-widest">System Active</span>
+              </div>
+           </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto relative scroll-smooth">
+          <div className="flex flex-col items-center justify-center px-4 py-12 min-h-full max-w-3xl mx-auto">
+            {activeTab === 'intelligence' && (
+              <div className="w-full flex flex-col items-center">
+                <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                  {intelMode === 'verify' ? <Verifier /> : <CandidateResearch />}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'dashboard' && (
+              !isEligible ? (
+                <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700">
+                  <div className="w-24 h-24 rounded-[2.5rem] bg-white/5 border border-white/10 flex items-center justify-center text-4xl shadow-2xl animate-float">🛡️</div>
+                  <div className="text-center space-y-2">
+                    <h2 className="text-3xl font-extrabold tracking-tighter text-glow">Identity Locked</h2>
+                    <p className="text-zinc-500 text-sm font-light max-w-xs mx-auto">Verify your legal voting eligibility to unlock your personal Readiness Vault.</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowEligibility(true)}
+                    className="px-10 py-5 bg-white text-black rounded-2xl font-extrabold text-xs uppercase tracking-[0.2em] hover:scale-110 active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                  >
+                    Check Eligibility
+                  </button>
+                </div>
+              ) : <Dashboard />
+            )}
+
+            {activeTab === 'navigator' && <Navigator />}
+          </div>
         </div>
       </div>
     </main>

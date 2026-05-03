@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #0d0d0d;
+:root{
+  --color-background: #0b0b0b;
+  --color-surface: #0f0f10;
   --color-primary: #ffffff;
-  --color-secondary: #a1a1aa;
+  --color-muted: #9ca3af;
   --color-accent: #3b82f6;
   --color-success: #10b981;
   --color-warning: #f59e0b;
@@ -12,31 +13,37 @@
 
 @layer base {
   body {
-    @apply bg-background text-primary antialiased selection:bg-white/10;
+    @apply bg-[color:var(--color-background)] text-[color:var(--color-primary)] antialiased selection:bg-white/10;
     font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-[2rem] transition-all duration-300;
+    @apply bg-white/[0.03] border border-white/5 backdrop-blur-sm rounded-2xl transition-all duration-300;
   }
-  
+
   .glass-card:hover {
-    @apply bg-white/[0.05] border-white/10 shadow-2xl shadow-white/5;
+    @apply bg-white/[0.05] border-white/10 shadow-lg;
   }
 
   .premium-gradient {
-    background: radial-gradient(circle at top left, rgba(255,255,255,0.05) 0%, transparent 70%);
+    background: radial-gradient(circle at top left, rgba(255,255,255,0.04) 0%, transparent 65%);
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    text-shadow: 0 0 12px rgba(255,255,255,0.18);
+  }
+
+  /* Center utility for main content */
+  .center-container {
+    @apply w-full max-w-lg sm:max-w-2xl md:max-w-4xl mx-auto px-4;
   }
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
   ::-webkit-scrollbar-track {
     @apply bg-transparent;

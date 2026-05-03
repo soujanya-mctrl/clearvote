@@ -59,8 +59,8 @@ export default function EligibilityCheck({ onPassed }: { onPassed: () => void })
   return (
     <div className="w-full max-w-md glass-card p-10 text-center space-y-8 animate-in slide-in-from-bottom-8 duration-700">
       <div className="space-y-2">
-        <h2 className="text-2xl font-black text-white tracking-tighter text-glow">Eligibility Check</h2>
-        <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.4em]">Step {step + 1} of {questions.length}</p>
+        <h2 className="text-2xl font-extrabold text-white tracking-tighter text-glow">Eligibility Check</h2>
+        <p className="text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.4em]">Step {step + 1} of {questions.length}</p>
       </div>
 
       <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] space-y-6">
@@ -82,7 +82,7 @@ export default function EligibilityCheck({ onPassed }: { onPassed: () => void })
         </button>
         <button 
           onClick={() => handleAnswer(true)}
-          className="py-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl"
+          className="py-4 bg-white text-black rounded-2xl font-extrabold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl"
         >
           Yes
         </button>

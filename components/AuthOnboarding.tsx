@@ -32,6 +32,10 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
          }, 1000);
          return;
       }
+      
+      if (!auth) {
+        throw new Error("Firebase Auth not initialized");
+      }
       await createUserWithEmailAndPassword(auth, email, password);
       setStep('aadhaar');
     } catch (err: unknown) {
@@ -39,6 +43,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
       // If user exists, try signing in
       if (error.code === 'auth/email-already-in-use') {
         try {
+          if (!auth) throw new Error("Firebase Auth not initialized");
           await signInWithEmailAndPassword(auth, email, password);
           setStep('aadhaar');
         } catch (innerErr: unknown) {
@@ -60,7 +65,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
       localStorage.setItem('clearvote_user_profile', JSON.stringify(profile));
       
       // Attempt Firestore save if connected
-      if (auth.currentUser) {
+      if (auth && auth.currentUser && db) {
         await setDoc(doc(db, "users", auth.currentUser.uid), profile);
       }
       
@@ -96,7 +101,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
           <div className="text-center space-y-8 animate-in slide-in-from-bottom-4">
             <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl mx-auto">🛡️</div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight text-white">Secure Onboarding</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-white">Secure Onboarding</h2>
               <p className="text-sm text-zinc-500 leading-relaxed">Let&apos;s verify your identity and documents to ensure your electoral readiness.</p>
             </div>
             <button onClick={() => setStep('auth')} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm">Get Started</button>
@@ -106,13 +111,13 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
         {step === 'auth' && (
           <form onSubmit={handleAuth} className="space-y-6 animate-in slide-in-from-right-4">
             <div className="space-y-2 text-center">
-              <h3 className="text-xl font-bold text-white">Identity Access</h3>
+              <h3 className="text-xl font-extrabold text-white">Identity Access</h3>
               <p className="text-xs text-zinc-500">Enter your credentials to link your DigiLocker data.</p>
             </div>
             <div className="space-y-3">
-              <input type="email" required placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm focus:border-zinc-600 transition-all outline-none" />
-              <input type="password" required placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm focus:border-zinc-600 transition-all outline-none" />
-              <input type="tel" placeholder="Phone Number (Optional)" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm focus:border-zinc-600 transition-all outline-none" />
+              <input type="email" required placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm focus:border-white/20 transition-all outline-none" />
+              <input type="password" required placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm focus:border-white/20 transition-all outline-none" />
+              <input type="tel" placeholder="Phone Number (Optional)" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm focus:border-white/20 transition-all outline-none" />
             </div>
             {error && <p className="text-[10px] text-error text-center font-bold uppercase">{error}</p>}
             <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm disabled:opacity-30">
@@ -127,7 +132,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
               <h3 className="text-xl font-bold text-white">Aadhaar Link</h3>
               <p className="text-xs text-zinc-500">Your unique 12-digit identity for electoral roll deduplication.</p>
             </div>
-            <input type="text" placeholder="1234 5678 9012" value={aadhaar} onChange={e => setAadhaar(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm text-center tracking-[0.5em] font-mono outline-none" />
+            <input type="text" placeholder="1234 5678 9012" value={aadhaar} onChange={e => setAadhaar(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm text-center tracking-[0.5em] font-mono outline-none" />
             <button onClick={() => setStep('pan')} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm">Next Step</button>
           </div>
         )}
@@ -138,7 +143,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
               <h3 className="text-xl font-bold text-white">PAN Verification</h3>
               <p className="text-xs text-zinc-500">Secondary identity check for comprehensive profile verification.</p>
             </div>
-            <input type="text" placeholder="ABCDE1234F" value={pan} onChange={e => setPan(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm text-center tracking-[0.5em] font-mono outline-none uppercase" />
+            <input type="text" placeholder="ABCDE1234F" value={pan} onChange={e => setPan(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm text-center tracking-[0.5em] font-mono outline-none uppercase" />
             <button onClick={() => setStep('voter')} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm">Next Step</button>
           </div>
         )}
@@ -149,7 +154,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
               <h3 className="text-xl font-bold text-white">Voter ID (EPIC)</h3>
               <p className="text-xs text-zinc-500">The essential identifier for casting your vote.</p>
             </div>
-            <input type="text" placeholder="XYZ1234567" value={voterId} onChange={e => setVoterId(e.target.value)} className="w-full px-5 py-3.5 bg-black/40 border border-[#262626] rounded-xl text-sm text-center tracking-[0.2em] font-mono outline-none uppercase" />
+            <input type="text" placeholder="XYZ1234567" value={voterId} onChange={e => setVoterId(e.target.value)} className="w-full px-5 py-3.5 bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-xl text-sm text-center tracking-[0.2em] font-mono outline-none uppercase" />
             <button onClick={saveProfile} disabled={loading} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm disabled:opacity-30">
               {loading ? "Syncing..." : "Finish Onboarding"}
             </button>
@@ -160,7 +165,7 @@ export default function AuthOnboarding({ onComplete }: { onComplete: () => void 
           <div className="text-center space-y-8 animate-in zoom-in duration-500">
             <div className="w-20 h-20 rounded-full bg-success/10 border border-success/20 flex items-center justify-center text-4xl mx-auto text-success">✓</div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight text-white">Profile Verified</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-white">Profile Verified</h2>
               <p className="text-sm text-zinc-500 leading-relaxed">Your electoral profile has been synced with DigiLocker and Firebase. You are ready to explore ClearVote.</p>
             </div>
             <button onClick={onComplete} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-sm">Enter Dashboard</button>

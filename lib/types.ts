@@ -6,7 +6,7 @@ export interface Source {
 }
 
 export interface FactCheckResponse {
-  verdict: "True" | "False" | "Misleading" | "Out of Scope";
+  verdict: "True" | "False" | "Misleading" | "Unverified" | "Out of Scope";
   confidence_score: number;
   explanation: string;
   sources: Source[];

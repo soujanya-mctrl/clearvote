@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FactCheckResponse } from '../lib/types';
 
 const SOURCES_BEING_CHECKED = [
@@ -11,23 +11,92 @@ const SOURCES_BEING_CHECKED = [
   "eci.gov.in/mcc"
 ];
 
+const EXAMPLE_PROMPTS = [
+  "Free electricity scheme eligibility in Delhi",
+  "Is the new education policy implemented in all states?",
+  "Aadhaar linking deadline for voter ID",
+  "Rules for NRI voting in 2024"
+];
+
+const VERDICT_CONFIG: Record<string, { color: string; bg: string; border: string; icon: string }> = {
+  'True':        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: '✓' },
+  'False':       { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/20',     icon: '✗' },
+  'Misleading':  { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   icon: '⚠' },
+  'Unverified':  { color: 'text-zinc-400',    bg: 'bg-zinc-500/10',    border: 'border-zinc-500/20',    icon: '?' },
+  'Out of Scope':{ color: 'text-zinc-500',    bg: 'bg-zinc-500/10',    border: 'border-zinc-500/20',    icon: '—' },
+};
+
+function getVerdictStyle(verdict: string) {
+  return VERDICT_CONFIG[verdict] || VERDICT_CONFIG['Unverified'];
+}
+
+function isValidUrl(str: string): boolean {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch { return false; }
+}
+
+function getDomain(url: string): string {
+  try { return new URL(url).hostname.replace('www.', ''); }
+  catch { return url; }
+}
+
 export default function Verifier() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<FactCheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingUrl, setCheckingUrl] = useState('');
   const [error, setError] = useState('');
+  const [attachedUrls, setAttachedUrls] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState('');
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlError, setUrlError] = useState('');
+  const urlInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (loading) {
       let i = 0;
+      const allUrls = [...SOURCES_BEING_CHECKED, ...attachedUrls.map(u => getDomain(u))];
       const interval = setInterval(() => {
-        setCheckingUrl(SOURCES_BEING_CHECKED[i % SOURCES_BEING_CHECKED.length]);
+        setCheckingUrl(allUrls[i % allUrls.length]);
         i++;
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [loading]);
+  }, [loading, attachedUrls]);
+
+  useEffect(() => {
+    if (showUrlInput && urlInputRef.current) {
+      urlInputRef.current.focus();
+    }
+  }, [showUrlInput]);
+
+  const handleAddUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    
+    if (!isValidUrl(trimmed)) {
+      setUrlError('Please enter a valid URL (https://...)');
+      return;
+    }
+    if (attachedUrls.includes(trimmed)) {
+      setUrlError('URL already attached');
+      return;
+    }
+    if (attachedUrls.length >= 5) {
+      setUrlError('Maximum 5 URLs allowed');
+      return;
+    }
+
+    setAttachedUrls(prev => [...prev, trimmed]);
+    setUrlInput('');
+    setUrlError('');
+  };
+
+  const handleRemoveUrl = (url: string) => {
+    setAttachedUrls(prev => prev.filter(u => u !== url));
+  };
 
   const handleVerify = async (e?: React.FormEvent, customQuery?: string) => {
     if (e) e.preventDefault();
@@ -43,7 +112,7 @@ export default function Verifier() {
       const response = await fetch('/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: finalQuery }),
+        body: JSON.stringify({ query: finalQuery, urls: attachedUrls }),
       });
 
       const data = await response.json();
@@ -56,39 +125,143 @@ export default function Verifier() {
     }
   };
 
+  const handleNewQuery = () => {
+    setResult(null);
+    setQuery('');
+    setAttachedUrls([]);
+    setError('');
+  };
+
+  const verdictStyle = result ? getVerdictStyle(result.verdict) : null;
+
   return (
     <div className="w-full max-w-2xl flex flex-col items-center pb-20">
       {!result && !loading && (
-        <div className="text-center mb-12 space-y-3 animate-in fade-in duration-1000">
-          <h2 className="text-4xl font-black tracking-tighter text-white text-glow">How can I help?</h2>
-          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Verify Election Integrity with AI</p>
+        <div className="text-center mb-6 space-y-3 animate-in fade-in duration-1000">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tighter text-white text-glow">How can I help?</h2>
+          <p className="text-zinc-600 text-[10px] font-extrabold uppercase tracking-[0.4em]">Verify Election Integrity with AI</p>
         </div>
       )}
 
-      {/* Main Search Bar (Premium) */}
-      <div className={`w-full transition-all duration-700 ${result || loading ? 'order-last mt-12' : ''}`}>
-        <form onSubmit={(e) => handleVerify(e)} className="relative group max-w-xl mx-auto w-full">
-          <div className="absolute inset-0 bg-white/5 blur-2xl rounded-2xl group-focus-within:bg-white/10 transition-all duration-500" />
+      {/* Main Search Bar */}
+      <div className={`w-full transition-all duration-700 ${result || loading ? 'sticky bottom-10 z-40 px-6' : 'relative mt-4'}`}>
+        <form onSubmit={(e) => handleVerify(e)} className="relative group w-full">
+          <label htmlFor="verifier-query" className="sr-only">Verification query</label>
+          <div className="absolute inset-0 bg-[#171717]/80 backdrop-blur-2xl rounded-2xl group-focus-within:bg-white/5 transition-colors duration-300 border border-white/5 shadow-2xl" />
           <input
+            id="verifier-query"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Verify an election claim or rule..."
-            className="w-full px-8 py-5 bg-[#171717] border border-white/5 rounded-2xl text-sm transition-all focus:border-white/20 focus:ring-0 placeholder:text-zinc-600 shadow-2xl relative z-10"
+            className="w-full px-4 sm:px-8 py-4 bg-transparent rounded-2xl text-sm transition-all focus:border-white/20 focus:ring-0 placeholder:text-zinc-500 relative z-10 pr-24"
           />
-          <button
-            type="submit"
-            disabled={loading || !query.trim()}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-20 transition-all z-20 shadow-xl"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-          </button>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+            {/* Attach URL Button */}
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(!showUrlInput)}
+              title="Attach article URL"
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                showUrlInput || attachedUrls.length > 0
+                  ? 'bg-white/10 text-white border border-white/20'
+                  : 'text-zinc-500 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              {attachedUrls.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-black text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {attachedUrls.length}
+                </span>
+              )}
+            </button>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              aria-label="Run verification"
+              disabled={loading || !query.trim()}
+              className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-30 transition-all shadow-xl"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </button>
+          </div>
         </form>
+
+        {/* URL Input Dropdown */}
+        {showUrlInput && !result && !loading && (
+          <div className="mt-3 p-4 bg-[#141414] border border-white/5 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  ref={urlInputRef}
+                  type="url"
+                  value={urlInput}
+                  onChange={(e) => { setUrlInput(e.target.value); setUrlError(''); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddUrl(); } }}
+                  placeholder="Paste article URL to verify against..."
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/5 rounded-xl text-xs focus:border-white/20 focus:ring-0 placeholder:text-zinc-600 transition-all"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                className="px-4 py-2.5 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/15 transition-all shrink-0"
+              >
+                Add
+              </button>
+            </div>
+            {urlError && (
+              <p className="text-[10px] text-red-400 font-medium px-1">{urlError}</p>
+            )}
+            <p className="text-[10px] text-zinc-600 px-1">
+              Attach up to 5 article URLs. Content will be parsed and fed to AI for verification.
+            </p>
+          </div>
+        )}
+
+        {/* Attached URL Chips */}
+        {attachedUrls.length > 0 && !result && !loading && (
+          <div className="flex flex-wrap gap-2 mt-3 animate-in fade-in duration-300">
+            {attachedUrls.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-white/5 border border-white/5 rounded-xl group hover:border-white/10 transition-all">
+                <svg className="w-3 h-3 text-zinc-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span className="text-[11px] text-zinc-400 max-w-[200px] truncate">{getDomain(url)}</span>
+                <button
+                  onClick={() => handleRemoveUrl(url)}
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Example Prompts */}
+        {!result && !loading && (
+          <div className="flex flex-wrap justify-center gap-3 mt-6 animate-in fade-in slide-in-from-top-4 duration-500">
+            {EXAMPLE_PROMPTS.map((prompt, i) => (
+              <button
+                key={i}
+                onClick={() => { setQuery(prompt); handleVerify(undefined, prompt); }}
+                className="px-3 py-2 rounded-full border border-white/6 bg-transparent text-[12px] text-zinc-400 hover:text-white hover:bg-white/[0.03] transition-all"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Loading State (Premium) */}
+      {/* Loading State */}
       {loading && (
         <div className="w-full mt-20 animate-in fade-in duration-1000 flex flex-col items-center gap-6">
            <div className="relative">
@@ -104,54 +277,98 @@ export default function Verifier() {
         </div>
       )}
 
-      {/* Result Display (Premium) */}
-      {result && (
-        <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <div className="glass-card premium-gradient p-10 space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className={`text-4xl font-black tracking-tighter text-glow verdict-${result.verdict}`}>
-                  {result.verdict}
-                </h2>
-                <div className="flex flex-col items-end gap-2">
-                  <span className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">{result.confidence_score}% Confidence</span>
-                  <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-white transition-all duration-1000" style={{ width: `${result.confidence_score}%` }} />
-                  </div>
-                </div>
-              </div>
-              <p className="text-lg leading-relaxed text-zinc-300 font-light">
-                {result.explanation}
-              </p>
+      {/* Result Display */}
+      {result && verdictStyle && (
+        <div className="w-full mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
+          
+          {/* Verdict Header Card */}
+          <div className={`flex items-center gap-4 p-5 rounded-2xl border ${verdictStyle.bg} ${verdictStyle.border}`}>
+            <div className={`w-12 h-12 rounded-xl ${verdictStyle.bg} border ${verdictStyle.border} flex items-center justify-center text-xl font-bold ${verdictStyle.color} shrink-0`}>
+              {verdictStyle.icon}
             </div>
-
-            {result.sources.length > 0 && (
-              <div className="pt-8 border-t border-white/5 space-y-6">
-                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]">Verified Sources</p>
-                <div className="grid gap-4">
-                  {result.sources.map((source, i) => (
-                    <div key={i} className="space-y-3 group">
-                      <a href={source.url} target="_blank" className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.05] hover:border-white/10 transition-all">
-                        <span className="text-xs font-bold text-zinc-400 group-hover:text-white">{source.title}</span>
-                        <svg className="w-4 h-4 text-zinc-700 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                      </a>
-                      {source.snippet && (
-                        <div className="mx-4 p-5 bg-white/[0.02] border-l-2 border-white/10 rounded-r-2xl">
-                          <p className="text-xs text-zinc-500 italic leading-relaxed font-light">
-                            &quot;{source.snippet}&quot;
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h3 className={`text-lg font-extrabold tracking-tight ${verdictStyle.color}`}>
+                  {result.verdict}
+                </h3>
+                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Verdict</span>
               </div>
-            )}
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex-1 max-w-[160px] h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                      result.confidence_score >= 75 ? 'bg-emerald-400' : 
+                      result.confidence_score >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                    }`} 
+                    style={{ width: `${result.confidence_score}%` }} 
+                  />
+                </div>
+                <span className="text-[10px] text-zinc-500 font-bold tabular-nums">{result.confidence_score}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Explanation Card */}
+          <div className="glass-card p-6 space-y-4">
+            <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]">Analysis</p>
+            <p className="text-sm leading-relaxed text-zinc-300 font-light">
+              {result.explanation}
+            </p>
+          </div>
+
+          {/* Sources */}
+          {result.sources.length > 0 && (
+            <div className="glass-card p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]">Verified Sources</p>
+                <span className="text-[9px] text-zinc-700 font-bold">{result.sources.length} source{result.sources.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="grid gap-3">
+                {result.sources.map((source, i) => (
+                  <div key={i} className="space-y-2">
+                    <a 
+                      href={source.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3.5 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.05] hover:border-white/10 transition-all group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                        <span className="text-[9px] font-bold text-zinc-500">{i + 1}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-zinc-400 group-hover:text-white transition-colors truncate">{source.title}</p>
+                        <p className="text-[10px] text-zinc-600 truncate mt-0.5">{source.url}</p>
+                      </div>
+                      <svg className="w-4 h-4 text-zinc-700 group-hover:text-white transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                    {source.snippet && (
+                      <div className="ml-10 p-3 bg-white/[0.02] border-l-2 border-white/10 rounded-r-xl">
+                        <p className="text-[11px] text-zinc-500 italic leading-relaxed font-light">
+                          &quot;{source.snippet}&quot;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New Query Button */}
+          <div className="flex justify-center pt-2">
+            <button
+              onClick={handleNewQuery}
+              className="px-6 py-2.5 rounded-xl border border-white/5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-white hover:bg-white/5 hover:border-white/10 transition-all"
+            >
+              New Verification
+            </button>
           </div>
         </div>
       )}
 
-      {/* Error (Premium) */}
+      {/* Error */}
       {error && (
         <div className="mt-12 glass-card p-6 bg-error/5 border-error/20 text-center space-y-3">
           <p className="text-error text-[10px] font-black uppercase tracking-widest">System Alert</p>

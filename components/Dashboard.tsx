@@ -77,7 +77,7 @@ export default function Dashboard() {
     return (
       <div className="w-full max-w-2xl flex flex-col items-center justify-center min-h-[400px] gap-6">
         <div className="w-10 h-10 border-2 border-white/10 border-t-white rounded-full animate-spin" />
-        <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.3em] animate-pulse">Syncing Vault...</p>
+        <p className="text-zinc-600 text-[9px] font-extrabold uppercase tracking-[0.3em] animate-pulse">Syncing Vault...</p>
       </div>
     );
   }
@@ -88,12 +88,12 @@ export default function Dashboard() {
       {/* Personalized Header */}
       <div className="flex items-center justify-between glass-card p-6 premium-gradient">
         <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-xl font-black text-white shadow-xl">
+           <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-xl font-extrabold text-white shadow-xl">
              {profile?.email?.[0]?.toUpperCase() || 'U'}
            </div>
            <div>
              <h2 className="text-lg font-bold text-white tracking-tight">{profile?.email || 'Guest User'}</h2>
-             <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.2em]">Verified Electoral Profile</p>
+             <p className="text-[9px] text-zinc-500 font-extrabold uppercase tracking-[0.2em]">Verified Electoral Profile</p>
            </div>
         </div>
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/20 rounded-xl">
@@ -150,14 +150,14 @@ export default function Dashboard() {
             </button>
 
             <div className="flex items-center gap-6">
-               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black ${
+               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-extrabold ${
                  selectedDoc.status === 'verified' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
                }`}>
                  {verifyingId === selectedDoc.id ? '...' : selectedDoc.status === 'verified' ? '✓' : '!'}
                </div>
                <div>
-                  <h3 className="text-2xl font-black text-white tracking-tighter text-glow">{selectedDoc.name}</h3>
-                  <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em]">
+                  <h3 className="text-2xl font-extrabold text-white tracking-tighter text-glow">{selectedDoc.name}</h3>
+                  <p className="text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.3em]">
                     {verifyingId === selectedDoc.id ? 'Analyzing Protocol...' : selectedDoc.status}
                   </p>
                </div>
